@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 [RequireComponent (typeof(Rigidbody2D))]
@@ -24,7 +25,7 @@ public class MovimientoJugador : MonoBehaviour
 
     private bool estaTocandoSuelo;
 
-    private float longitudRaycast = 0.1f;
+    private float longitudRaycast = 1.55f;
 
    
 
@@ -45,6 +46,11 @@ public class MovimientoJugador : MonoBehaviour
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRaycast, capaSuelo);
 
+        estaTocandoSuelo = hit.collider != null;
+
+        Color colorRayo=estaTocandoSuelo ? Color.green : Color.red;
+
+        Debug.DrawRay(transform.position, Vector2.down * longitudRaycast, colorRayo);
 
         if (accionSaltar.action.WasPressedThisFrame() && estaTocandoSuelo)
         {
