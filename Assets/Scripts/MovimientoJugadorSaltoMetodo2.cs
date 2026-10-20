@@ -23,9 +23,7 @@ public class MovimientoJugadorSaltoMetodo2 : MonoBehaviour
 
     private Rigidbody2D fisica;
     private Vector2 entradaMovimiento;
-
     private bool estaTocandoSuelo;
-
     private bool saltoPendiente;
 
     private void Awake()
@@ -96,16 +94,6 @@ public class MovimientoJugadorSaltoMetodo2 : MonoBehaviour
             Gizmos.DrawSphere(esferaPies.position, distanciaSuelo);
         }
     }
-
-
-
-
-
-
-
-
-
-
 
     private void OnDisable()//esto es para cuando se quita el gameObject.
     {

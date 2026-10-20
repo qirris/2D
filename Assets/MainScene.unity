@@ -1058,7 +1058,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 888401580}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: EsferaPies
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1681,7 +1681,7 @@ GameObject:
   - component: {fileID: 1466769147}
   - component: {fileID: 1466769146}
   - component: {fileID: 1466769152}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: metodo2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
