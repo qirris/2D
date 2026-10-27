@@ -11,6 +11,7 @@ public class MovimientoJugador : MonoBehaviour
     public float velocity;
 
 
+
     [SerializeField]private InputActionReference accionMover;
 
     [Header("Salto")]
@@ -19,19 +20,28 @@ public class MovimientoJugador : MonoBehaviour
     public float fuerzaImpulso = 5f;//fuerza aplicada al saltar
     [SerializeField] LayerMask capaSuelo;
     private Rigidbody2D fisica;
+    private SpriteRenderer renderizador;
+
+    private Animator animador;
 
     private Vector2 entradaX;
     private bool saltoPendiente;
 
     private bool estaTocandoSuelo;
 
-    private float longitudRaycast = 1.55f;
+    private float longitudRaycast = 1.7f;
+
+    private float umbralCarrera = 0.1f;
 
    
 
     private void Awake()
     {
         fisica = GetComponent<Rigidbody2D>();
+
+        renderizador = GetComponent<SpriteRenderer>();
+
+        animador = GetComponent<Animator>();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -55,6 +65,27 @@ public class MovimientoJugador : MonoBehaviour
         if (accionSaltar.action.WasPressedThisFrame() && estaTocandoSuelo)
         {
             saltoPendiente = true;
+        }
+        AnimarJugador();
+    }
+
+    private void AnimarJugador()
+    {
+        if (animador == null)
+            return;
+
+        if (!estaTocandoSuelo)
+        {
+            animador.Play("JugadorSaltando");
+        }
+        else if (Mathf.Abs(fisica.linearVelocity.x) > 0)
+        {
+            animador.Play("JugadorCorriendo");
+
+        }
+        else
+        {
+            animador.Play("JugadorParado");
         }
     }
 
@@ -103,10 +134,24 @@ public class MovimientoJugador : MonoBehaviour
             fisica.AddForce(Vector2.up * fuerzaImpulso,ForceMode2D.Impulse);
         }
         saltoPendiente = false;
+        OrientarSprite();
     }
 
-    
+    private void OrientarSprite()
+    {
+        if (renderizador == null)
+            return;
+        
 
+        if (fisica.linearVelocity.x > 0)//esto es para que se gire.
+        {
+            renderizador.flipX = false;
+        }
+        else if (fisica.linearVelocity.x < 0)
+        {
+            renderizador.flipX = true;
+        }
 
+    }
 }
 
