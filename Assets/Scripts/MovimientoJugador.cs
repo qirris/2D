@@ -9,10 +9,16 @@ public class MovimientoJugador : MonoBehaviour
 {
     [Header("MovimientoJugador")]
     public float velocity;
+    [SerializeField] private InputActionReference accionMover;
 
+    [Header("Reaparicion")]
+    [SerializeField] private Transform spawnPoint;
+    private float duracionAparacion = 0.1F;
 
+    [Header("Canvas")]
+    [SerializeField] private Canvas canvasInterfaz;
 
-    [SerializeField]private InputActionReference accionMover;
+    private ControlHUD hud;
 
     [Header("Salto")]
     [SerializeField] private InputActionReference accionSaltar;
@@ -46,7 +52,10 @@ public class MovimientoJugador : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+
+
+
+        InicializarHud();
     }
 
     // Update is called once per frame
@@ -69,6 +78,23 @@ public class MovimientoJugador : MonoBehaviour
         AnimarJugador();
     }
 
+
+    private void InicializarHud()
+    {
+        if (canvasInterfaz != null)
+        {
+            hud = canvasInterfaz.GetComponent<ControlHUD>();
+        }
+        else
+            Debug.LogError("Asigna el objeto Canvas con el componente ControlHUD al atributo Canvas del jugador");
+        if(hud != null)
+        {
+            hud.SetVidas(vidas);
+            hud.SetTiempo(tiempoLimiteNivel);
+            hud.SetPowerUps(GameOblect.FindGameObjectWithTag("PowerUp").Length);
+        }else
+            Debug.LogError("Asigna el objeto Canvas con el componente ControlHUD al atributo Canvas del jugador");
+    }
     private void AnimarJugador()
     {
         if (animador == null)
@@ -153,5 +179,53 @@ public class MovimientoJugador : MonoBehaviour
         }
 
     }
-}
 
+    public void ReaparecerJugador()
+    {
+        if (spawnPoint == null)
+        {
+            Debug.LogError(
+                "Asigan un spawn Point al Objecto jugador", this);
+            enabled = false;
+            return;
+        }
+        fisica.position = (Vector2)spawnPoint.position;
+        fisica.linearVelocity = Vector2.zero;
+
+    }
+
+
+    private void ComprobarFinJuegoTiempo()
+    {
+        tiempoReal = Time.time - tiempoInicio;
+        tiempoEmpleado = Mathf.FloorToInt(tiempoReal);
+        int segundosRestantes = Mathf.CeilToInt(tiempoLimiteNivel - tiempoReal);
+        hud.SetTiempo(segundosRestantes);
+        if(tiempoEmpleado >= tiempoLimiteNivel)
+        {
+            FinJuego();
+            return;
+        }
+    }
+
+    public void QuitarVida()
+    {
+        if(!vulnerable)
+
+        hud.SetVidas(vidas);
+    }
+
+
+    public void IncrementarPuntos(int cantidad)
+    {
+        if (cantidad <= 0) return;
+
+        puntacion += cantidad;
+        hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUP").Length);
+    }
+
+
+
+    
+
+}
