@@ -11,20 +11,44 @@ public class MovimientoJugador : MonoBehaviour
     public float velocity;
     [SerializeField] private InputActionReference accionMover;
 
+    [Header("Salto")]
+    [SerializeField] private InputActionReference accionSaltar;
+
+    public float fuerzaImpulso = 5f;//fuerza aplicada al saltar
+    [SerializeField] LayerMask capaSuelo;
+
     [Header("Reaparicion")]
     [SerializeField] private Transform spawnPoint;
     private float duracionAparacion = 0.1F;
+
+   
+
+   
+
+    [Header("Puntuación")]
+    [SerializeField] private int puntuacion;
+
+
+    [Header("Salud")]
+    [SerializeField,Min(1)] private int vidas = 3;
+    [SerializeField, Min(0.01f)] private float segundosInvulnerables = 1f;
+    private bool vulnerable = true;
+    private Color colorOriginal;
+    public int Vidas => vidas;
+
+    [Header("Tiempo")]
+    [SerializeField, Min(1)] private int tiempoLimiteNivel = 100;
+    [SerializeField] private int tiempoEmpleado;
+
+    private float tiempoInicio;
+    private float tiempoReal;
+    public int TiempoEmpleado => tiempoEmpleado;
 
     [Header("Canvas")]
     [SerializeField] private Canvas canvasInterfaz;
 
     private ControlHUD hud;
 
-    [Header("Salto")]
-    [SerializeField] private InputActionReference accionSaltar;
-
-    public float fuerzaImpulso = 5f;//fuerza aplicada al saltar
-    [SerializeField] LayerMask capaSuelo;
     private Rigidbody2D fisica;
     private SpriteRenderer renderizador;
 
@@ -52,8 +76,12 @@ public class MovimientoJugador : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        if(renderizador != null)
+        {
+            colorOriginal = renderizador.color;
+        }
 
-
+        tiempoInicio = Time.time;
 
         InicializarHud();
     }
@@ -62,20 +90,25 @@ public class MovimientoJugador : MonoBehaviour
     void Update()//aqui se lee
     {
         entradaX =accionMover.action.ReadValue<Vector2>();
+        SaltoJugador();
+        ComprobarFinJuegoTiempo();
+        AnimarJugador();
+    }
 
+    private void SaltoJugador()
+    {
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRaycast, capaSuelo);
 
         estaTocandoSuelo = hit.collider != null;
 
-        Color colorRayo=estaTocandoSuelo ? Color.green : Color.red;
+        Color colorRayo = estaTocandoSuelo ? Color.green : Color.red;
 
-        Debug.DrawRay(transform.position, Vector2.down * longitudRaycast, colorRayo);
+    Debug.DrawRay(transform.position, Vector2.down* longitudRaycast, colorRayo);
 
         if (accionSaltar.action.WasPressedThisFrame() && estaTocandoSuelo)
         {
             saltoPendiente = true;
         }
-        AnimarJugador();
     }
 
 
@@ -91,7 +124,7 @@ public class MovimientoJugador : MonoBehaviour
         {
             hud.SetVidas(vidas);
             hud.SetTiempo(tiempoLimiteNivel);
-            hud.SetPowerUps(GameOblect.FindGameObjectWithTag("PowerUp").Length);
+            hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUp").Length);
         }else
             Debug.LogError("Asigna el objeto Canvas con el componente ControlHUD al atributo Canvas del jugador");
     }
@@ -208,9 +241,15 @@ public class MovimientoJugador : MonoBehaviour
         }
     }
 
+    private void FinJuego()
+    {
+        Debug.Log("Juego finalizado");
+        gameObject.SetActive(false);
+    }
+
     public void QuitarVida()
     {
-        if(!vulnerable)
+        if (!vulnerable || vidas <= 0) return;
 
         hud.SetVidas(vidas);
     }
@@ -220,12 +259,8 @@ public class MovimientoJugador : MonoBehaviour
     {
         if (cantidad <= 0) return;
 
-        puntacion += cantidad;
+        puntuacion += cantidad;
         hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUP").Length);
     }
-
-
-
-    
 
 }

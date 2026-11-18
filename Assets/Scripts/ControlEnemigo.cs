@@ -1,7 +1,5 @@
 using UnityEngine;
 
-
-[RequireComponent(typeof(Rigidbody2D))]
 public class ControlEnemigo : MonoBehaviour
 {
     [Header("Movimiento")]
@@ -18,7 +16,7 @@ public class ControlEnemigo : MonoBehaviour
 
     private void Awake()
     {
-        fisica= GetComponent<Rigidbody2D>();
+        fisica = GetComponent<Rigidbody2D>();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -32,27 +30,27 @@ public class ControlEnemigo : MonoBehaviour
 
     private void FixedUpdate()
     {
-      Vector2 posicionObjetivo;
+        Vector2 posicionObjetivo;
 
-      if (velocidad <= 0)
-       return;
+        if (velocidad <= 0)
+            return;
 
-      if (movimientoHaciaArriba)
-      {
-     posicionObjetivo = posicionFinal;
-      }
-      else
-      {
-       posicionObjetivo = posicionInicial;
-      }
+        if (movimientoHaciaArriba)
+        {
+            posicionObjetivo = posicionFinal;
+        }
+        else
+        {
+            posicionObjetivo = posicionInicial;
+        }
 
-    if (Vector2.Distance(fisica.position, posicionObjetivo) <= tolerancia)
-      {
-        movimientoHaciaArriba = !movimientoHaciaArriba;
-       posicionObjetivo = movimientoHaciaArriba ? posicionFinal : posicionInicial;
-    
-     
-     }
+        if (Vector2.Distance(fisica.position, posicionObjetivo) <= tolerancia)
+        {
+            movimientoHaciaArriba = !movimientoHaciaArriba;
+            posicionObjetivo = movimientoHaciaArriba ? posicionFinal : posicionInicial;
+
+
+        }
 
         fisica.MovePosition(Vector2.MoveTowards(fisica.position, posicionObjetivo, velocidad * Time.fixedDeltaTime));
 
@@ -62,7 +60,7 @@ public class ControlEnemigo : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D colision)
     {
         if (!colision.gameObject.CompareTag("Player")) return;
-        if(colision.gameObject.TryGetComponent(out MovimientoJugador jugador))
+        if (colision.gameObject.TryGetComponent(out MovimientoJugador jugador))
         {
             jugador.ReaparecerJugador();
         }
@@ -71,6 +69,4 @@ public class ControlEnemigo : MonoBehaviour
             Debug.LogError("El objeto Player necesita ControlJugador en la raiz.");
         }
     }
-
-
 }
