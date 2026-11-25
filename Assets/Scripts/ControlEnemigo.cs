@@ -62,7 +62,9 @@ public class ControlEnemigo : MonoBehaviour
         if (!colision.gameObject.CompareTag("Player")) return;
         if (colision.gameObject.TryGetComponent(out MovimientoJugador jugador))
         {
-            jugador.ReaparecerJugador();
+            //jugador.ReaparecerJugador();//ya no queremos que reaparezca
+            jugador.QuitarVida();
+
         }
         else
         {

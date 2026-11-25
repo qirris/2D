@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 [RequireComponent (typeof(Rigidbody2D))]
 public class MovimientoJugador : MonoBehaviour
 {
@@ -21,9 +22,9 @@ public class MovimientoJugador : MonoBehaviour
     [SerializeField] private Transform spawnPoint;
     private float duracionAparacion = 0.1F;
 
-   
 
-   
+
+    
 
     [Header("Puntuación")]
     [SerializeField] private int puntuacion;
@@ -46,8 +47,14 @@ public class MovimientoJugador : MonoBehaviour
 
     [Header("Canvas")]
     [SerializeField] private Canvas canvasInterfaz;
+    private ControlDatosJuego controlDatosJuego;
 
     private ControlHUD hud;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip saltoSonido;
+    [SerializeField] private AudioClip vidasSonido;
+    private AudioSource efectoSonido;
 
     private Rigidbody2D fisica;
     private SpriteRenderer renderizador;
@@ -83,7 +90,17 @@ public class MovimientoJugador : MonoBehaviour
 
         tiempoInicio = Time.time;
 
+        controlDatosJuego = ControlDatosJuego.Instancia;
+        if (controlDatosJuego == null)
+        {
+            Debug.LogError("Añade Datos Juego al  nivel");
+        }
+        else
+            controlDatosJuego.ReiniciarPartida();
+
         InicializarHud();
+
+        
     }
 
     // Update is called once per frame
@@ -186,13 +203,7 @@ public class MovimientoJugador : MonoBehaviour
 
     private void FixedUpdate()//siempre que se utilice fisica,se hace aqui/aqui se aplica
     {
-        fisica.linearVelocity = new Vector2(entradaX.x * velocity, fisica.linearVelocity.y);
-
-        if (saltoPendiente)
-        {
-            fisica.AddForce(Vector2.up * fuerzaImpulso,ForceMode2D.Impulse);
-        }
-        saltoPendiente = false;
+        MoverJugador();
         OrientarSprite();
     }
 
@@ -213,6 +224,17 @@ public class MovimientoJugador : MonoBehaviour
 
     }
 
+    public void Victoria()
+    {
+        puntuacion = vidas * 100 + Mathf.Max(0, tiempoLimiteNivel - tiempoEmpleado);
+
+        saltoPendiente = false;
+        fisica.linearVelocity = Vector2.zero;
+
+        controlDatosJuego.GuardarResultado(true, puntuacion);
+        SceneManager.LoadScene("FinNivel");
+    }
+
     public void ReaparecerJugador()
     {
         if (spawnPoint == null)
@@ -227,13 +249,26 @@ public class MovimientoJugador : MonoBehaviour
 
     }
 
+    private void MoverJugador()
+    {
+        fisica.linearVelocity = new Vector2(entradaX.x * velocity, fisica.linearVelocity.y);
+
+        if (saltoPendiente)
+        {
+            fisica.AddForce(Vector2.up * fuerzaImpulso, ForceMode2D.Impulse);
+        }
+        saltoPendiente = false;
+    }
+
 
     private void ComprobarFinJuegoTiempo()
     {
         tiempoReal = Time.time - tiempoInicio;
         tiempoEmpleado = Mathf.FloorToInt(tiempoReal);
-        int segundosRestantes = Mathf.CeilToInt(tiempoLimiteNivel - tiempoReal);
+        int segundosRestantes = Mathf.CeilToInt(Mathf.Max(0f, tiempoLimiteNivel - tiempoReal));
         hud.SetTiempo(segundosRestantes);
+        hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUp").Length);
+
         if(tiempoEmpleado >= tiempoLimiteNivel)
         {
             FinJuego();
@@ -243,15 +278,43 @@ public class MovimientoJugador : MonoBehaviour
 
     private void FinJuego()
     {
-        Debug.Log("Juego finalizado");
-        gameObject.SetActive(false);
+       if(controlDatosJuego == null)
+        {
+            Debug.LogError("Falta el objecto Datos Juego para poder guardar el resultado de la partida", this);
+            return;
+     
+        }
+
+        controlDatosJuego.GuardarResultado(false, 0);
+
+        SceneManager.LoadScene("FinNivel");
     }
 
     public void QuitarVida()
     {
         if (!vulnerable || vidas <= 0) return;
-
+        vulnerable = false;
+        vidas--;
+        
         hud.SetVidas(vidas);
+
+        if(renderizador != null)
+        {
+            renderizador.color = Color.blue;
+        }
+        
+        if (vidasSonido != null)
+        {
+            efectoSonido.PlayOneShot(vidasSonido);
+        }
+
+        if(vidas <= 0)
+        {
+            FinJuego();
+            return;
+        }
+
+        Invoke(nameof(HacerVulnerable), segundosInvulnerables);//llama al metodo + tiempo
     }
 
 
@@ -260,7 +323,17 @@ public class MovimientoJugador : MonoBehaviour
         if (cantidad <= 0) return;
 
         puntuacion += cantidad;
-        hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUP").Length);
+        hud.SetPowerUps(GameObject.FindGameObjectsWithTag("PowerUp").Length);
+    }
+
+    private void HacerVulnerable()
+    {
+        vulnerable = true;
+
+        if (renderizador != null)
+        {
+            renderizador.color = colorOriginal;
+        }
     }
 
 }
